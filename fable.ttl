@@ -1,0 +1,26 @@
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .
+@prefix schema:<http://schema.org/> .
+@prefix lit:   <http://example.org/literature/> .
+
+# 작품: 콩쥐와 팥쥐
+<http://example.org/work/KongjwiPatjwi>
+    a schema:CreativeWork ;
+    dc:title "콩쥐와 팥쥐" ;
+    dc:type "전래동화" ;
+    schema:genre "설화" ;
+    schema:about "권선징악" ;
+    schema:spatialCoverage "한국" ;
+    schema:character <http://example.org/character/Kongjwi> ,
+                     <http://example.org/character/Patjwi> .
+
+# 등장인물: 콩쥐
+<http://example.org/character/Kongjwi>
+    a schema:Person ;
+    schema:name "콩쥐" ;
+    schema:roleName "착한 인물" .
+
+# 등장인물: 팥쥐
+<http://example.org/character/Patjwi>
+    a schema:Person ;
+    schema:name "팥쥐" ;
+    schema:roleName "악한 인물" .

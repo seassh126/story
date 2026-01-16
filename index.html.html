@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이야기 박사님과 함께하는 콩쥐팥쥐 여행</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Jua&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+        :root {
+            --primary-color: #FF9AA2;
+            --secondary-color: #FFB7B2;
+            --accent-color: #FFDAC1;
+            --bg-color: #E2F0CB;
+            --card-bg: #FFFFFF;
+            --text-color: #5D4037;
+            --chat-width: 380px;
+        }
+
+        /* Basic Reset */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#FFDAC1 20%, transparent 20%), radial-gradient(#FF9AA2 20%, transparent 20%);
+            background-size: 50px 50px;
+            background-position: 0 0, 25px 25px;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Layout Structure - Split Screen */
+        .main-layout {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Left Pane: Visualization */
+        .visualization-pane {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Right Pane: Chatbot */
+        .chat-pane {
+            width: var(--chat-width);
+            background: #fff;
+            border-left: 5px solid #FFDAC1;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        /* Visualization Styling */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: bounceInDown 1s;
+        }
+
+        .title-badge {
+            background: #FF9AA2;
+            color: white;
+            padding: 8px 25px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            display: inline-block;
+            transform: rotate(-2deg);
+            border: 3px solid #fff;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #FF6B6B;
+            text-shadow: 2px 2px 0px #fff;
+            margin-top: 10px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            width: 100%;
+            max-width: 800px;
+            padding-bottom: 50px;
+        }
+
+        .story-book {
+            background: #fff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 6px solid #FFDAC1;
+            position: relative;
+            animation: zoomIn 0.8s;
+            text-align: center;
+        }
+
+        .story-book::before {
+            content: '📖 이야기 지도';
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: #FFDAC1;
+            color: #5D4037;
+            padding: 5px 15px;
+            font-size: 1rem;
+            border-bottom-right-radius: 15px;
+            font-weight: bold;
+        }
+
+        .book-title {
+            font-size: 2.5rem;
+            color: #5D4037;
+            margin-bottom: 15px;
+        }
+
+        .tags {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .tag {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-family: 'Gaegu', cursive;
+        }
+
+        .tag.genre {
+            background: #B5EAD7;
+        }
+
+        .tag.type {
+            background: #C7CEEA;
+        }
+
+        .tag.location {
+            background: #FFF59D;
+        }
+
+        .lesson-box {
+            background: #FFF8E1;
+            border: 2px dashed #FFB74D;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .lesson-title {
+            font-size: 1.2rem;
+            color: #F57C00;
+            margin-bottom: 5px;
+        }
+
+        .lesson-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .characters-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            animation: fadeInUp 1s;
+        }
+
+        .character-card {
+            background: #fff;
+            border-radius: 30px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+
+        .character-card:hover {
+            transform: scale(1.03) rotate(-1deg);
+        }
+
+        .char-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            border: 3px solid;
+            flex-shrink: 0;
+        }
+
+        .char-name {
+            font-size: 1.5rem;
+            margin-bottom: 2px;
+        }
+
+        .char-role {
+            font-size: 1rem;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-family: 'Gaegu';
+            display: inline-block;
+        }
+
+        .char-desc {
+            font-size: 0.9rem;
+            color: #666;
+            font-family: 'Gaegu';
+            margin-top: 5px;
+        }
+
+        /* Chat Pane Styles */
+        .chat-header-pane {
+            background: #FF9AA2;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .bot-avatar {
+            width: 70px;
+            height: 70px;
+            background: #fff;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border: 3px solid #FFE0B2;
+        }
+
+        .chat-title {
+            font-size: 1.5rem;
+        }
+
+        .chat-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-family: 'Gaegu';
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #FFF9F0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 1.1rem;
+            line-height: 1.4;
+            position: relative;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .msg-bot {
+            background: #fff;
+            color: #5D4037;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 2px solid #E0E0E0;
+            margin-left: 15px;
+        }
+
+        .msg-user {
+            background: #FF9AA2;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .msg-bot::before {
+            content: '🤖';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            font-size: 24px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Suggestion Chips */
+        .suggestion-area {
+            padding: 10px 15px;
+            background: #fff;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-top: 1px solid #eee;
+        }
+
+        .chip {
+            background: #FFF3E0;
+            color: #E65100;
+            border: 1px solid #FFE0B2;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-family: 'Gaegu';
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip:hover {
+            background: #FFCC80;
+            transform: translateY(-2px);
+        }
+
+        .input-area {
+            padding: 15px;
+            background: #fff;
+            padding-top: 5px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .question-input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 25px;
+            border: 2px solid #E0E0E0;
+            font-family: 'Jua', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .question-input:focus {
+            border-color: #FF9AA2;
+        }
+
+        .send-btn {
+            background: #FF9AA2;
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1);
+            background: #FF6B6B;
+        }
+
+        /* Raw Data Toggle */
+        .raw-wrapper {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            z-index: 100;
+        }
+
+        .toggle-btn {
+            background: rgba(93, 64, 55, 0.8);
+            color: #fff;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Jua';
+        }
+
+        .raw-data {
+            position: fixed;
+            bottom: 60px;
+            left: 15px;
+            width: 400px;
+            max-height: 400px;
+            overflow: auto;
+            background: rgba(0, 0, 0, 0.9);
+            color: #0f0;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            z-index: 101;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-layout">
+        <!-- Left: Visualization (The Graph) -->
+        <div class="visualization-pane">
+            <header>
+                <div class="title-badge">눈으로 보는 동화</div>
+                <h1>이야기 지도</h1>
+            </header>
+
+            <div class="container" id="app">
+                <!-- Content will be injected here by JS -->
+                <div style="font-size: 1.5rem; text-align: center; color: #888;">이야기를 불러오고 있어요... 📖</div>
+            </div>
+
+        </div>
+
+        <!-- Right: Chatbot -->
+        <div class="chat-pane">
+            <div class="chat-header-pane">
+                <div class="bot-avatar">🎓</div>
+                <div class="chat-title">이야기 박사님</div>
+                <div class="chat-subtitle">무엇이든 물어보렴!</div>
+            </div>
+
+            <div class="chat-messages" id="chatArea">
+                <div class="message msg-bot">안녕! 나는 이야기 박사야. 👋<br>왼쪽 그림을 보다가 궁금한 게 있으면 버튼을 누르거나 물어봐!</div>
+            </div>
+
+            <!-- Suggestion Chips -->
+            <div class="suggestion-area">
+                <button class="chip" onclick="sendSuggestion('콩쥐는 누구야?')">👧 콩쥐는 누구야?</button>
+                <button class="chip" onclick="sendSuggestion('팥쥐는 왜 콩쥐를 괴롭혀?')">� 팥쥐는 왜 그래?</button>
+                <button class="chip" onclick="sendSuggestion('깨진 독은 누가 막았어?')">🐸 깨진 독은?</button>
+                <button class="chip" onclick="sendSuggestion('꽃신은 어디 갔어?')">👠 꽃신은?</button>
+            </div>
+
+            <div class="input-area">
+                <input type="text" class="question-input" id="userInput" placeholder="궁금한 내용을 적어봐!"
+                    onkeypress="handleKeyPress(event)">
+                <button class="send-btn" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="raw-wrapper">
+        <button class="toggle-btn" onclick="toggleRaw()">💾 원본 데이터(TTL) 보기</button>
+    </div>
+    <div class="raw-data" id="rawData"></div>
+
+    <script>
+        // Data: Kongjwi
+        const rdfData = `
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .
+@prefix schema:<http://schema.org/> .
+
+# 작품: 콩쥐와 팥쥐
+<http://example.org/work/KongjwiPatjwi>
+    a schema:CreativeWork ;
+    dc:title "콩쥐와 팥쥐" ;
+    dc:type "전래동화" ;
+    schema:genre "설화" ;
+    schema:about "권선징악: 착한 사람은 복을 받고 나쁜 사람은 벌을 받아요." ;
+    schema:spatialCoverage "한국의 어느 마을" ;
+    schema:character <http://example.org/character/Kongjwi> ,
+                     <http://example.org/character/Patjwi> .
+
+# 등장인물: 콩쥐
+<http://example.org/character/Kongjwi>
+    a schema:Person ;
+    schema:name "콩쥐" ;
+    schema:roleName "착한 콩쥐" ;
+    schema:description "마음씨가 착하고 부지런해요." .
+
+# 등장인물: 팥쥐
+<http://example.org/character/Patjwi>
+    a schema:Person ;
+    schema:name "팥쥐" ;
+    schema:roleName "심술쟁이 팥쥐" ;
+    schema:description "콩쥐를 괴롭히고 욕심이 많아요." .
+`;
+
+        document.getElementById('rawData').innerText = rdfData;
+
+        function toggleRaw() {
+            const el = document.getElementById('rawData');
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function parseTTL(ttl) {
+            const data = {
+                title: '', type: '', genre: '', theme: '', location: '', characters: []
+            };
+
+            const titleMatch = ttl.match(/dc:title "([^"]+)"/);
+            if (titleMatch) data.title = titleMatch[1];
+
+            const typeMatch = ttl.match(/dc:type "([^"]+)"/);
+            if (typeMatch) data.type = typeMatch[1];
+
+            const genreMatch = ttl.match(/schema:genre "([^"]+)"/);
+            if (genreMatch) data.genre = genreMatch[1];
+
+            const themeMatch = ttl.match(/schema:about "([^"]+)"/);
+            if (themeMatch) data.theme = themeMatch[1];
+
+            const locationMatch = ttl.match(/schema:spatialCoverage "([^"]+)"/);
+            if (locationMatch) data.location = locationMatch[1];
+
+            const charBlocks = ttl.split('# 등장인물:').slice(1);
+
+            charBlocks.forEach(block => {
+                const nameMatch = block.match(/schema:name "([^"]+)"/);
+                const roleMatch = block.match(/schema:roleName "([^"]+)"/);
+                const descMatch = block.match(/schema:description "([^"]+)"/);
+
+                if (nameMatch && roleMatch) {
+                    data.characters.push({
+                        name: nameMatch[1],
+                        role: roleMatch[1],
+                        description: descMatch ? descMatch[1] : "",
+                        isGood: !roleMatch[1].includes('악') && !roleMatch[1].includes('심술') && !roleMatch[1].includes('자만') && !roleMatch[1].includes('나쁜')
+                    });
+                }
+            });
+
+            return data;
+        }
+
+        function render() {
+            const data = parseTTL(rdfData);
+            const app = document.getElementById('app');
+
+            const charactersHtml = data.characters.map(char => `
+            <div class="character-card" style="border-right: 8px solid ${char.isGood ? '#B5EAD7' : '#FFB7B2'}">
+                <div class="char-icon" 
+                     style="background: ${char.isGood ? '#E0F2F1' : '#FFEBEE'}; 
+                            border-color: ${char.isGood ? '#00695C' : '#C62828'};">
+                    ${char.isGood ? '😇' : '😈'}
+                </div>
+                <div class="char-info">
+                    <div class="char-name">${char.name}</div>
+                    <div class="char-role" style="background:${char.isGood ? '#E0F2F1' : '#FFEBEE'}; color:${char.isGood ? '#00695C' : '#C62828'}">${char.role}</div>
+                    <div class="char-desc">${char.description}</div>
+                </div>
+            </div>
+        `).join('');
+
+            app.innerHTML = `
+            <div class="story-book">
+                <div class="book-content">
+                    <div class="tags">
+                        <span class="tag type">#${data.type}</span>
+                        <span class="tag genre">#${data.genre}</span>
+                        <span class="tag location">📍 ${data.location}</span>
+                    </div>
+                    <h2 class="book-title">${data.title}</h2>
+                    
+                    <div class="lesson-box">
+                        <div class="lesson-title">✨ 선생님의 비밀 노트</div>
+                        <div class="lesson-text">${data.theme}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="characters-section">
+                ${charactersHtml}
+            </div>
+        `;
+        }
+
+        // Chat Logic
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        function sendSuggestion(text) {
+            document.getElementById('userInput').value = text;
+            sendMessage();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const question = input.value.trim();
+            if (!question) return;
+
+            addMessage(question, 'user');
+            input.value = '';
+
+            // Generate answer
+            setTimeout(() => {
+                const answer = generateAnswer(question);
+                addMessage(answer, 'bot');
+            }, 600);
+        }
+
+        function addMessage(text, type) {
+            const chatArea = document.getElementById('chatArea');
+            const div = document.createElement('div');
+            div.className = `message msg-${type}`;
+            div.innerHTML = text;
+            chatArea.appendChild(div);
+            requestAnimationFrame(() => { chatArea.scrollTop = chatArea.scrollHeight; });
+        }
+
+        function generateAnswer(q) {
+            const data = parseTTL(rdfData);
+            q = q.toLowerCase();
+
+            // Patjwi Specific Logic (Enhanced)
+            if (q.includes('팥쥐')) {
+                if (q.includes('괴롭') || q.includes('미워') || q.includes('싫어') || q.includes('왜')) {
+                    return "팥쥐는 욕심이 많고 콩쥐를 질투해서 괴롭혔어. 😠 <br>하지만 친구를 괴롭히면 나중에 벌을 받게 된단다.";
+                }
+                if (q.includes('엄마') || q.includes('계모')) {
+                    return "팥쥐의 엄마(계모)도 콩쥐에게 힘든 일만 시키고 팥쥐만 감싸주었어. 😢";
+                }
+            }
+
+            // Other Story Logic
+            if (q.includes('독') || q.includes('항아리')) return "두꺼비가 나타나서 <b>몸으로 깨진 구멍을 막아주었어!</b> 🐸";
+            if (q.includes('신발') || q.includes('꽃신')) return "원님(사또)이 콩쥐의 잃어버린 꽃신을 보고 콩쥐를 찾아주었어 👠";
+            if (q.includes('잔치')) return "참새와 소가 도와주어서 숙제를 다 하고 잔치에 갈 수 있었지! 🎉";
+
+            // Common Logic
+            if (q.includes('주제') || q.includes('교훈')) return `이 이야기의 교훈은 <b>"${data.theme}"</b>(이)야!`;
+            if (q.includes('장소') || q.includes('배경')) return `이 이야기는 <b>${data.location}</b>에서 일어났어.`;
+
+            for (let char of data.characters) {
+                if (q.includes(char.name)) {
+                    if (q.includes('누구')) return `<b>${char.name}</b>는 ${char.description} 그리고 ${char.role}야.`;
+                    if (q.includes('착해') || q.includes('나빠') || q.includes('성격')) return char.isGood ? `응! ${char.name}는 <b>아주 착한 친구</b>야. 😇` : `음... ${char.name}는 조금 <b>못된 마음</b>을 가졌어. 😈`;
+                }
+            }
+
+            if (q.includes('안녕')) return "안녕! 반가워. 콩쥐와 팥쥐 이야기에 대해 물어봐줘!";
+
+            return "음, 그건 조금 어려운걸? 🤔 <br> 아래 버튼을 눌러보거나<br>'팥쥐는 왜 그래?', '꽃신은?' 처럼 물어봐 줄래?";
+        }
+
+        // Init
+        setTimeout(render, 300);
+    </script>
+</body>
+
+</html>
