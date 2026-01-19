@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서희의 콩쥐팥쥐 이야기 탐험</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #FFF9C4;
+            /* 연한 노랑 */
+            --primary-color: #FFB74D;
+            /* 주황 */
+            --secondary-color: #4DB6AC;
+            /* 청록 */
+            --accent-color: #FF8A65;
+            /* 살구색 */
+            --text-color: #5D4037;
+            /* 고동색 */
+            --chat-bg: #FFFFFF;
+            --user-msg-bg: #DCEDC8;
+            /* 연두 */
+            --bot-msg-bg: #E1F5FE;
+            /* 하늘 */
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            color: var(--secondary-color);
+            text-shadow: 2px 2px white;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            height: calc(100% - 100px);
+            /* 헤더 제외 높이 */
+            gap: 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border: 5px solid var(--primary-color);
+        }
+
+        /* 왼쪽: 그래프 영역 */
+        #graph-container {
+            flex: 2;
+            border: 3px dashed var(--secondary-color);
+            border-radius: 15px;
+            background-color: #FAFAFA;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .graph-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        /* 오른쪽: 챗봇 영역 */
+        #chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border: 3px solid var(--accent-color);
+            border-radius: 15px;
+            background-color: var(--chat-bg);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        #chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--user-msg-bg);
+            border-bottom-right-radius: 2px;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: var(--bot-msg-bg);
+            border-bottom-left-radius: 2px;
+            border: 2px solid #B3E5FC;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: var(--bot-msg-bg);
+            border-bottom-left-radius: 2px;
+            border: 2px solid #B3E5FC;
+        }
+
+        /* 추천 질문 칩 스타일 */
+        .suggestions {
+            padding: 10px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            background-color: #fafafa;
+            border-top: 1px dashed #ddd;
+            white-space: nowrap;
+        }
+
+        /* 스크롤바 숨기기 */
+        .suggestions::-webkit-scrollbar {
+            height: 5px;
+        }
+
+        .suggestions::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        .suggestion-chip {
+            background-color: #E0F2F1;
+            color: #00796B;
+            border: 1px solid #4DB6AC;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-family: 'Jua', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .suggestion-chip:hover {
+            background-color: #B2DFDB;
+            transform: translateY(-2px);
+        }
+
+        .input-area {
+            padding: 10px;
+            background-color: #f1f1f1;
+            display: flex;
+            gap: 10px;
+            border-top: 2px solid #ddd;
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 25px;
+            font-family: 'Jua', sans-serif;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-family: 'Jua', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        button:hover {
+            background-color: #FFA726;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* 애니메이션 */
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+                overflow-y: scroll;
+            }
+
+            #graph-container {
+                height: 300px;
+            }
+
+            #chat-container {
+                height: 400px;
+            }
+
+            body {
+                overflow: auto;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>✨ 서희의 콩쥐팥쥐 이야기 탐험 ✨</h1>
+    </header>
+
+    <div class="container">
+        <div id="graph-container">
+            <div class="graph-label">이야기 지도</div>
+            <div id="mynetwork" style="width: 100%; height: 100%;"></div>
+        </div>
+
+        <div id="chat-container">
+            <div class="chat-header">
+                🤖 척척박사 로봇
+            </div>
+            <div id="chat-messages">
+                <div class="message bot-message">안녕! 나는 콩쥐팥쥐 이야기를 다 알고 있는 척척박사야.<br>이야기 지도에 대해 궁금한 걸 물어봐 줘!</div>
+            </div>
+
+            <div class="suggestions">
+                <button class="suggestion-chip" onclick="askSuggestion('콩쥐는 누구야?')">콩쥐는 누구야?</button>
+                <button class="suggestion-chip" onclick="askSuggestion('누가 콩쥐를 괴롭혀?')">누가 콩쥐를 괴롭혀?</button>
+                <button class="suggestion-chip" onclick="askSuggestion('누가 콩쥐를 도와줘?')">누가 도와줘?</button>
+                <button class="suggestion-chip" onclick="askSuggestion('잔치는 뭐야?')">잔치는 뭐야?</button>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="예: 콩쥐는 누구야?">
+                <button onclick="sendMessage()">물어보기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. RDF 데이터 (story.ttl 내용 그대로)
+        const ttlData = `
+@prefix ex: <http://example.org/kongjwi-patjwi#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:Person rdf:type rdfs:Class .
+ex:Animal rdf:type rdfs:Class .
+ex:Object rdf:type rdfs:Class .
+ex:Event rdf:type rdfs:Class .
+
+ex:Kongjwi rdf:type ex:Person ;
+    rdfs:label "콩쥐" .
+
+ex:Patjwi rdf:type ex:Person ;
+    rdfs:label "팥쥐" .
+
+ex:Stepmother rdf:type ex:Person ;
+    rdfs:label "계모" ;
+    ex:bullies ex:Kongjwi .
+
+ex:Magistrate rdf:type ex:Person ;
+    rdfs:label "원님" .
+
+ex:Ox rdf:type ex:Animal ;
+    rdfs:label "소" ;
+    ex:helps ex:Kongjwi .
+
+ex:Bird rdf:type ex:Animal ;
+    rdfs:label "새" ;
+    ex:helps ex:Kongjwi .
+
+ex:SilkShoe rdf:type ex:Object ;
+    rdfs:label "비단신" .
+
+ex:ForcedLabor rdf:type ex:Event ;
+    rdfs:label "집안일 강요" ;
+    ex:involves ex:Kongjwi ;
+    ex:causedBy ex:Stepmother .
+
+ex:AnimalHelp rdf:type ex:Event ;
+    rdfs:label "동물들의 도움" ;
+    ex:involves ex:Kongjwi ;
+    ex:helper ex:Ox, ex:Bird ;
+    ex:leadsTo ex:Festival .
+
+ex:Festival rdf:type ex:Event ;
+    rdfs:label "잔치" ;
+    ex:involves ex:Kongjwi ;
+    ex:uses ex:SilkShoe ;
+    ex:leadsTo ex:ShoeSearch .
+
+ex:ShoeSearch rdf:type ex:Event ;
+    rdfs:label "비단신 주인 찾기" ;
+    ex:conductedBy ex:Magistrate ;
+    ex:findsOwner ex:Kongjwi ;
+    ex:leadsTo ex:Marriage .
+
+ex:Marriage rdf:type ex:Event ;
+    rdfs:label "혼인" ;
+    ex:involves ex:Kongjwi, ex:Magistrate .
+
+ex:bullies rdf:type rdf:Property .
+ex:helps rdf:type rdf:Property .
+ex:involves rdf:type rdf:Property .
+ex:helper rdf:type rdf:Property .
+ex:causedBy rdf:type rdf:Property .
+ex:uses rdf:type rdf:Property .
+ex:conductedBy rdf:type rdf:Property .
+ex:findsOwner rdf:type rdf:Property .
+ex:leadsTo rdf:type rdf:Property .
+        `;
+
+        // 2. 간단한 Turtle 파서
+        const triples = [];
+        const labels = {};
+        const translations = {
+            "bullies": "괴롭힘",
+            "helps": "도와줌",
+            "involves": "관련됨",
+            "helper": "도우미",
+            "causedBy": "원인 제공",
+            "uses": "사용함",
+            "conductedBy": "주관함",
+            "findsOwner": "주인을 찾음",
+            "leadsTo": "이어짐",
+            "type": "종류"
+        };
+        const nodeTypes = {}; // uri -> type
+
+        function parseTurtle(data) {
+            const lines = data.split('\n');
+            let currentSubject = null;
+
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line || line.startsWith('#') || line.startsWith('@prefix')) return;
+
+                // 1. Subject 파싱 (ex:Kongjwi ...)
+                let parts = line.split(/\s+/);
+
+                // 만약 문장이 . 으로 끝나면 마지막 토큰 제거
+                if (parts[parts.length - 1] === '.') parts.pop();
+
+                // ; 로 끝나면 마지막 토큰 제거, subject 유지
+                let endsWithSemi = false;
+                if (parts[parts.length - 1] === ';') {
+                    parts.pop();
+                    endsWithSemi = true;
+                }
+
+                // , 로 끝나면 (이건 다음 줄에 연결되는 object 리스트) -> 간단한 파서를 위해 한 줄에 하나씩 가정하거나, 좀 더 복잡한 로직 필요.
+                // 이 파일 포맷상 ;는 줄바꿈 되지만 ,는 한 줄에 있을 수도 있음.
+                // 예: ex:helper ex:Ox, ex:Bird ; (이 경우 parts=[ex:helper, ex:Ox,, ex:Bird])
+
+                // 간단 처리를 위해 전체 string을 토큰화해서 순차 처리
+            });
+        }
+
+        // 정교한 파싱 대신, 정규식 기반의 심플 파서 재작성
+        function parseSimple(ttl) {
+            // 주석 제거
+            ttl = ttl.replace(/#.*/g, '');
+            // prefix 제거
+            ttl = ttl.replace(/@prefix .*/g, '');
+
+            // 문장 단위로 분리 (.)
+            const sentences = ttl.split(' .');
+
+            sentences.forEach(sentence => {
+                sentence = sentence.trim();
+                if (!sentence) return;
+
+                // 세미콜론(;)으로 주어에 대한 여러 속성 분리
+                const tokenGroups = sentence.split(' ;');
+
+                // 첫 그룹에서 주어 찾기
+                let firstGroupParts = tokenGroups[0].trim().split(/\s+/);
+                let subject = firstGroupParts[0]; // ex:Kongjwi
+                let predicate = firstGroupParts[1];
+                // Object가 콤마로 연결된 경우 처리
+                let objectsPart = firstGroupParts.slice(2).join(' ');
+                let objects = objectsPart.split(',').map(s => s.trim());
+
+                // 첫 트리플 저장
+                objects.forEach(obj => {
+                    addTriple(subject, predicate, obj);
+                });
+
+                // 나머지 그룹 (; 뒤) 처리 - 주어는 그대로
+                for (let i = 1; i < tokenGroups.length; i++) {
+                    let groupParts = tokenGroups[i].trim().split(/\s+/);
+                    let pred = groupParts[0];
+                    let objsPart = groupParts.slice(1).join(' ');
+                    let objs = objsPart.split(',').map(s => s.trim());
+
+                    objs.forEach(obj => {
+                        addTriple(subject, pred, obj);
+                    });
+                }
+            });
+        }
+
+        function addTriple(s, p, o) {
+            // 정리 (ex: 제거 등은 나중에)
+            triples.push({ s, p, o });
+
+            // Label 저장
+            if (p === 'rdfs:label') {
+                labels[s] = o.replace(/"/g, '');
+            }
+            if (p === 'rdf:type') {
+                nodeTypes[s] = o;
+            }
+        }
+
+        parseSimple(ttlData);
+
+        // 3. 그래프 데이터 변환 (Vis.js 포맷)
+        const nodes = new vis.DataSet();
+        const edges = new vis.DataSet();
+        const addedNodes = new Set();
+        const addedTypeEdges = new Set(); // 타입 관계는 그래프가 너무 복잡해지면 뺄 수도 있음
+
+        // 노드 색상 팔레트
+        const typeColors = {
+            'ex:Person': '#FFCCBC', // 살구색
+            'ex:Animal': '#C8E6C9', // 연두색
+            'ex:Object': '#FFF9C4', // 노란색
+            'ex:Event': '#E1F5FE',  // 하늘색
+            'rdfs:Class': '#E0E0E0' // 회색
+        };
+
+        triples.forEach(t => {
+            // 시각적 엣지인지 확인 (rdf:type, rdfs:label 제외)
+            const isVisualEdge = (t.p !== 'rdf:type' && t.p !== 'rdfs:label');
+
+            if (isVisualEdge) {
+                // 이 관계에 참여하는 노드들(Subject, Object)을 그래프에 추가
+                [t.s, t.o].forEach(uri => {
+                    if (!addedNodes.has(uri)) {
+                        let group = nodeTypes[uri] || 'default';
+                        let label = labels[uri] || uri.replace('ex:', ''); // 라벨 없으면 URI(영어) 나오지만, 이 데이터엔 다 있음
+
+                        nodes.add({
+                            id: uri,
+                            label: label,
+                            group: group,
+                            color: typeColors[group] || '#eee',
+                            shape: 'box',
+                            font: { face: 'Jua', size: 16 }
+                        });
+                        addedNodes.add(uri);
+                    }
+                });
+
+                // 엣지 추가
+                let edgeLabel = t.p.replace('ex:', '');
+                if (translations[edgeLabel]) edgeLabel = translations[edgeLabel];
+
+                edges.add({
+                    from: t.s,
+                    to: t.o,
+                    label: edgeLabel,
+                    arrows: 'to',
+                    font: { align: 'middle', face: 'Jua' },
+                    color: { color: '#B0BEC5' }
+                });
+            }
+        });
+
+        // nodeTypes를 이용해 뒤늦게 추가된 노드들의 색상 업데이트
+        nodes.forEach(node => {
+            if (node.group === 'default' && nodeTypes[node.id]) {
+                let realType = nodeTypes[node.id];
+                nodes.update({
+                    id: node.id,
+                    group: realType,
+                    color: typeColors[realType] || '#eee'
+                });
+            }
+        });
+
+
+        // 4. 그래프 그리기
+        const container = document.getElementById('mynetwork');
+        const data = { nodes: nodes, edges: edges };
+        const options = {
+            physics: {
+                stabilization: true,
+                barnesHut: {
+                    gravitationalConstant: -2000,
+                    springConstant: 0.04,
+                    springLength: 95
+                }
+            },
+            interaction: {
+                hover: true,
+                tooltipDelay: 200
+            }
+        };
+        const network = new vis.Network(container, data, options);
+
+        // 6. 그래프 클릭 이벤트를 챗봇과 연결
+        network.on("click", function (params) {
+            if (params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                const label = labels[nodeId];
+                if (!label) return;
+
+                // 대상의 타입에 따라 질문 어미 조정 (사람/동물 -> 누구야?, 그외 -> 뭐야?)
+                const type = nodeTypes[nodeId];
+                let suffix = "뭐야?";
+                if (type === 'ex:Person' || type === 'ex:Animal') {
+                    suffix = "누구야?";
+                }
+
+                const userText = `${label}(은)는 ${suffix}`;
+
+                // 1. 유저 메시지 창에 표시 (마치 유저가 질문한 것처럼)
+                addMessage(userText, 'user');
+
+                // 2. 답변 생성 호출
+                setTimeout(() => {
+                    // getAnswer 함수가 그래프 포커싱도 같이 수행함
+                    const answer = getAnswer(userText);
+                    addMessage(answer, 'bot');
+                }, 400);
+            }
+        });
+
+
+        // 5. 챗봇 로직
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+
+        // 엔터키 처리
+        userInput.addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            addMessage(text, 'user');
+            userInput.value = '';
+
+            // 챗봇 응답 지연 효과
+            setTimeout(() => {
+                const answer = getAnswer(text);
+                addMessage(answer, 'bot');
+            }, 500);
+        }
+
+        // 추천 질문 클릭 시 실행
+        function askSuggestion(text) {
+            addMessage(text, 'user');
+            setTimeout(() => {
+                const answer = getAnswer(text);
+                addMessage(answer, 'bot');
+            }, 500);
+        }
+
+        function addMessage(text, sender) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}-message`;
+            div.innerHTML = text; // HTML 허용 (줄바꿈 등)
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 질문 분석 및 답변 생성
+        function getAnswer(question) {
+            // 0. 이야기 맥락 설명 데이터 (풍부한 답변용)
+            const storyDescriptions = {
+                "ex:Kongjwi": "<b>콩쥐</b>는 마음씨 착하고 부지런한 주인공이야. 일찍 어머니를 여의고 계모와 팥쥐에게 구박을 받지만, 굴하지 않고 씩씩하게 이겨내는 아이란다. 결국 복을 받아 원님과 결혼해! 🌸",
+                "ex:Patjwi": "<b>팥쥐</b>는 심술궂은 콩쥐의 의붓동생이야. 콩쥐를 괴롭히고 시샘하는 욕심쟁이지. 콩쥐가 하는 건 다 따라하고 싶어 해. 😠",
+                "ex:Stepmother": "<b>계모</b>는 콩쥐의 새어머니야. 친딸인 팥쥐만 예뻐하고, 콩쥐에게는 '자갈밭 매기'나 '밑 빠진 독에 물 붓기' 같은 힘든 일만 시키는 나쁜 사람이야. 👿",
+                "ex:Magistrate": "<b>원님</b>은 이 고을을 다스리는 높은 분이야. 우연히 콩쥐가 잃어버린 비단신을 줍게 되고, 그 주인을 찾아나서다가 콩쥐를 만나 혼인하게 돼. 🤵",
+                "ex:Ox": "<b>소</b>는 콩쥐가 넓은 자갈밭을 혼자 갈아야 해서 울고 있을 때 나타난 고마운 친구야. '음메~' 하고 든든한 몸으로 밭을 대신 갈아주었어. 🐮",
+                "ex:Bird": "<b>참새</b>들은 콩쥐가 엄청 많은 벼를 찧어야 할 때 떼로 날아와서 부리로 껍질을 까준 귀여운 도우미들이야. 짹짹! 🐦",
+                "ex:SilkShoe": "<b>비단신</b>은 콩쥐가 선녀님께 받은 예쁜 신발인데, 잔치에 가려다 급해서 시냇가에 한 짝을 떨어뜨리고 말았어. 나중에 원님과 콩쥐를 이어주는 사랑의 증표가 되지! 👠",
+                "ex:ForcedLabor": "<b>집안일 강요</b>는 계모가 콩쥐를 잔치에 못 가게 하려고 시시킨 불가능한 일들이야. 하지만 동물 친구들의 도움으로 모두 해결했지! 💦",
+                "ex:AnimalHelp": "<b>동물들의 도움</b>은 검은 소, 두꺼비, 참새들이 나타나 콩쥐의 힘든 일을 마법처럼 해결해준 사건이야. 착한 콩쥐에게 하늘이 내린 선물이지. ✨",
+                "ex:Festival": "<b>잔치</b>는 원님이 마을 사람들을 위해 연 큰 파티야! 맛있는 음식도 많고 구경거리도 많아서 콩쥐도 꼭 가고 싶어 했어. 🎉",
+                "ex:ShoeSearch": "<b>비단신 주인 찾기</b>는 원님이 비단신의 주인을 찾기 위해 온 마을 사람들에게 신발을 신겨본 일이야. 결국 콩쥐 발에 쏙 들어갔단다! 🔍",
+                "ex:Marriage": "<b>혼인</b>은 온갖 고난을 이겨낸 콩쥐가 원님과 맺어지는 행복한 결말이야. 둘은 오래오래 행복하게 살았대! 💖"
+            };
+            // 1. 키워드 추출 (엔티티 찾기)
+            let foundEntities = [];
+            for (let uri in labels) {
+                if (question.includes(labels[uri])) {
+                    foundEntities.push(uri);
+                }
+            }
+
+            // 그래프 시각화 상호작용: 언급된 대상 찾아서 하이라이트
+            if (foundEntities.length > 0) {
+                network.selectNodes(foundEntities);
+                // 첫 번째 대상을 중심으로 이동 및 확대
+                network.focus(foundEntities[0], {
+                    scale: 1.2,
+                    animation: {
+                        duration: 1000,
+                        easingFunction: "easeInOutQuad"
+                    }
+                });
+            } else {
+                network.fit({
+                    animation: {
+                        duration: 1000,
+                        easingFunction: "easeInOutQuad"
+                    }
+                });
+            }
+
+            // 2. 답변 로직
+
+            // 편의를 위한 매퍼
+            const q = question.replace(/\s+/g, ''); // 공백 제거 후 확인
+
+            // Q: 누구야? / 뭐야? (정의/타입/label)
+            // "누가야", "누구니", "누가" (주어 질문 등)
+            if (question.includes("누구") || question.includes("뭐야") || question.includes("어떤") || q.includes("누가야") || (question.includes("누가") && !question.includes("괴롭") && !question.includes("도와") && !question.includes("도움"))) {
+                if (foundEntities.length > 0) {
+                    let subject = foundEntities[0];
+                    // [NEW] 이야기 설명 우선 반환
+                    if (storyDescriptions[subject]) {
+                        return storyDescriptions[subject];
+                    }
+
+                    let type = nodeTypes[subject];
+                    let label = labels[subject];
+
+                    // 주어에 대한 설명 찾기
+                    let descriptions = [];
+
+                    // 타입 번역
+                    let typeName = "대상";
+                    if (type === 'ex:Person') typeName = "사람";
+                    if (type === 'ex:Animal') typeName = "동물";
+                    if (type === 'ex:Event') typeName = "중요한 사건";
+                    if (type === 'ex:Object') typeName = "물건";
+
+                    // 연결된 관계 찾기
+                    let relations = triples.filter(t => t.s === subject).map(t => {
+                        let rel = translations[t.p.replace('ex:', '')] || t.p;
+                        let target = labels[t.o] || t.o;
+                        if (t.p === 'rdfs:label' || t.p === 'rdf:type') return null;
+                        return `👉 <b>${target}</b>와(과) <b>${rel}</b> 관계야.`;
+                    }).filter(x => x);
+
+                    // 역방향 관계 (누가 주어를 ~했나)
+                    let reverseRelations = triples.filter(t => t.o === subject).map(t => {
+                        let rel = translations[t.p.replace('ex:', '')] || t.p;
+                        let footer = labels[t.s] || t.s;
+                        if (t.p === 'rdfs:label' || t.p === 'rdf:type') return null;
+                        return `👉 <b>${footer}</b>에게 <b>${rel}</b> 당했거나 관련이 있어.`;
+                    }).filter(x => x);
+
+                    let relationText = relations.length > 0 ? "<br>" + relations.join('<br>') : "";
+
+                    return `<b>${label}</b>(은)는 우리 이야기의 <b>${typeName}</b>이야!${relationText}`;
+                }
+            }
+
+            // Q: 누가 ~를 괴롭혀? (Subject 찾기)
+            if ((question.includes("누가") || question.includes("누구")) && (question.includes("괴롭") || question.includes("나쁜"))) {
+                let victim = foundEntities.find(uri => {
+                    // 괴롭힘을 당하는 대상인지 확인
+                    return triples.some(t => t.p === 'ex:bullies' && t.o === uri);
+                });
+                // 만약 피해자가 명시되지 았았다면 콩쥐로 가정 (문맥상)
+                if (!victim && question.includes("누가")) {
+                    victim = "ex:Kongjwi";
+                    // 시각화 업데이트
+                    network.selectNodes([victim]);
+                }
+
+                if (victim) {
+                    let bully = triples.find(t => t.p === 'ex:bullies' && t.o === victim);
+                    if (bully) {
+                        // 가해자와 피해자 모두 선택
+                        network.selectNodes([bully.s, victim]);
+                        network.focus(bully.s, { scale: 1.1, animation: true });
+                        return `저런! <b>${labels[victim]}</b>(을)를 괴롭히는 건 바로 <b>${labels[bully.s]}</b>야! 정말 못됐지? 😤`;
+                    }
+                }
+            }
+
+            // Q: 누가 ~를 도와줘?
+            if ((question.includes("누가") || question.includes("누구")) && (question.includes("도와") || question.includes("도움"))) {
+                let helpee = foundEntities.find(uri => triples.some(t => t.p === 'ex:helps' && t.o === uri));
+                if (!helpee && foundEntities.length > 0) helpee = foundEntities[0]; // 언급된 애를 도와주는지 확인
+                if (!helpee) helpee = 'ex:Kongjwi'; // 기본 콩쥐
+
+                if (helpee) {
+                    let helpers = triples.filter(t => t.p === 'ex:helps' && t.o === helpee);
+                    if (helpers.length > 0) {
+                        let names = helpers.map(h => labels[h.s]).join(', ');
+                        // 헬퍼들 모두 선택
+                        let allNodes = helpers.map(h => h.s);
+                        allNodes.push(helpee);
+                        network.selectNodes(allNodes);
+                        network.fit({ nodes: allNodes, animation: true });
+
+                        return `착한 <b>${labels[helpee]}</b>(을)를 도와주는 친구들은 <b>${names}</b>(이)야! 참 고맙지? 💖`;
+                    }
+                }
+            }
+
+            // Q: ~는 어때? (이벤트 관련)
+            if (question.includes("사건") || question.includes("일어")) {
+                // 이벤트 찾기
+                let events = triples.filter(t => nodeTypes[t.s] === 'ex:Event').map(t => labels[t.s]);
+                return `이 이야기에는 <b>${events.join(', ')}</b> 같은 일들이 일어나!`;
+            }
+
+            // 일반 검색: 키워드가 포함된 트리플 정보 아무거나 말해주기
+            if (foundEntities.length > 0) {
+                let entity = foundEntities[0];
+                let info = triples.filter(t => t.s === entity && t.p !== 'rdfs:label' && t.p !== 'rdf:type');
+                if (info.length === 0) {
+                    info = triples.filter(t => t.o === entity && t.p !== 'rdfs:label' && t.p !== 'rdf:type');
+                }
+
+                if (info.length > 0) {
+                    let fact = info[0]; // 하나만 예시로, 혹은 여러개?
+                    let s_label = labels[fact.s] || fact.s;
+                    let o_label = labels[fact.o] || fact.o;
+                    let p_label = translations[fact.p.replace('ex:', '')] || fact.p;
+                    return `알려줄게! <b>${s_label}</b>(은)는 <b>${o_label}</b>(와)과 <b>${p_label}</b> 관계가 있어. 그래프를 한번 봐볼래?`;
+                }
+
+                return `<b>${labels[entity]}</b>에 대해 더 궁금한 게 있니? '누가 도와줘?' 같이 물어봐 줘!`;
+            }
+
+            return "음, 그건 잘 모르겠어. 😅<br><b>'콩쥐는 누구야?'</b><br><b>'누가 콩쥐를 괴롭혀?'</b><br>처럼 물어봐 줄래?";
+        }
+
+    </script>
+</body>
+
+</html>

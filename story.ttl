@@ -1,0 +1,93 @@
+@prefix ex: <http://example.org/kongjwi-patjwi#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+############################
+# Classes (Graph Node Types)
+############################
+
+ex:Person rdf:type rdfs:Class .
+ex:Animal rdf:type rdfs:Class .
+ex:Object rdf:type rdfs:Class .
+ex:Event rdf:type rdfs:Class .
+
+############################
+# Characters (Nodes)
+############################
+
+ex:Kongjwi rdf:type ex:Person ;
+    rdfs:label "콩쥐" .
+
+ex:Patjwi rdf:type ex:Person ;
+    rdfs:label "팥쥐" .
+
+ex:Stepmother rdf:type ex:Person ;
+    rdfs:label "계모" ;
+    ex:bullies ex:Kongjwi .
+
+ex:Magistrate rdf:type ex:Person ;
+    rdfs:label "원님" .
+
+############################
+# Animals (Helper Nodes)
+############################
+
+ex:Ox rdf:type ex:Animal ;
+    rdfs:label "소" ;
+    ex:helps ex:Kongjwi .
+
+ex:Bird rdf:type ex:Animal ;
+    rdfs:label "새" ;
+    ex:helps ex:Kongjwi .
+
+############################
+# Objects
+############################
+
+ex:SilkShoe rdf:type ex:Object ;
+    rdfs:label "비단신" .
+
+############################
+# Events (Story Flow)
+############################
+
+ex:ForcedLabor rdf:type ex:Event ;
+    rdfs:label "집안일 강요" ;
+    ex:involves ex:Kongjwi ;
+    ex:causedBy ex:Stepmother .
+
+ex:AnimalHelp rdf:type ex:Event ;
+    rdfs:label "동물들의 도움" ;
+    ex:involves ex:Kongjwi ;
+    ex:helper ex:Ox, ex:Bird ;
+    ex:leadsTo ex:Festival .
+
+ex:Festival rdf:type ex:Event ;
+    rdfs:label "잔치" ;
+    ex:involves ex:Kongjwi ;
+    ex:uses ex:SilkShoe ;
+    ex:leadsTo ex:ShoeSearch .
+
+ex:ShoeSearch rdf:type ex:Event ;
+    rdfs:label "비단신 주인 찾기" ;
+    ex:conductedBy ex:Magistrate ;
+    ex:findsOwner ex:Kongjwi ;
+    ex:leadsTo ex:Marriage .
+
+ex:Marriage rdf:type ex:Event ;
+    rdfs:label "혼인" ;
+    ex:involves ex:Kongjwi, ex:Magistrate .
+
+############################
+# Properties (Graph Edges)
+############################
+
+ex:bullies rdf:type rdf:Property .
+ex:helps rdf:type rdf:Property .
+ex:involves rdf:type rdf:Property .
+ex:helper rdf:type rdf:Property .
+ex:causedBy rdf:type rdf:Property .
+ex:uses rdf:type rdf:Property .
+ex:conductedBy rdf:type rdf:Property .
+ex:findsOwner rdf:type rdf:Property .
+ex:leadsTo rdf:type rdf:Property .
